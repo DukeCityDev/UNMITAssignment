@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS scheduleItem;
 DROP TABLE IF EXISTS user;
 
 CREATE TABLE user(
