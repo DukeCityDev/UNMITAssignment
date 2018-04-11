@@ -264,7 +264,7 @@ class User implements \JsonSerializable {
             throw(new \PDOException("not a new user"));
         }
         //create query template
-        $query = "INSERT INTO user( userUsername, userFirstName, userLastName, userEmail, userHash, userSalt) VALUES ( :userUsername, :userFirstName, :userLastName :userEmail, :userHash, :userSalt)";
+        $query = "INSERT INTO user( userUsername, userFirstName, userLastName, userEmail, userHash, userSalt) VALUES ( :userUsername, :userFirstName, :userLastName ,:userEmail, :userHash, :userSalt)";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders in the template
         $parameters = ["userUsername" => $this->userUsername,"userFirstName"=>$this->userLastName, "userLastName"=>$this->userLastName, "userEmail" => $this->userEmail, "userHash" => $this->userHash, "userSalt" => $this->userSalt];
