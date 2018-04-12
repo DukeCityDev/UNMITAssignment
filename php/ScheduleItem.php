@@ -1,4 +1,3 @@
-
 <?php
 /**
  *
@@ -174,6 +173,104 @@ class ScheduleItem{
             throw (new \RangeException("user id is not positive"));
         }
         $this->scheduleItemUserId = $newScheduleItemUserId;
+    }
+
+    /**
+     * Insert a new scheduleItem entry.
+     * @param \PDO $pdo the PDO connection object.
+     * @throws \PDOException if mySQL related errors occur.
+     * @throws \TypeError if $pdo is not a PDO connection object.
+     **/
+    public function insert(\PDO $pdo) {
+        //check to make sure this user doesn't already exist
+        if($this->scheduleItemId !== null || $this->scheduleItemUserId == null) {
+            throw(new \PDOException("not a new scheduleItem or no user Id"));
+        }
+        //create query template
+        $query = "INSERT INTO scheduleItem( scheduleItemDesciption, scheduleItemName, scheduleItemStartTime, scheduleItemEndTime, scheduleItemUserId) VALUES (:scheduleItemDesciption, :scheduleItemName, :scheduleItemStartTime, :scheduleItemEndTime, :scheduleItemUserId)";
+        $statement = $pdo->prepare($query);
+        // bind member variables to placeholders in the template
+        $parameters = ["scheduleItemName" => $this->scheduleItemId,"scheduleItemName"=>$this->scheduleItemName,"scheduleItemDescription"=>$this->scheduleItemDescription ,"scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
+        $statement->execute($parameters);
+        $this->scheduleItemId = intval($pdo->lastInsertId());
+    }
+    /**
+     * Delete a scheduleItem entry.
+     * @param \PDO $pdo PDO connection object.
+     * @throws \PDOException if mySQL related errors occur.
+     * @throws \TypeError if $pdo is not a PDO object.
+     **/
+    public function delete(\PDO $pdo) {
+
+        if($this->scheduleItemId == null){
+            throw new \PDOException("can't deleted uninserted scheduleItem");
+        }
+        // create query template
+        $query = "DELETE FROM scheduleItem WHERE scheduleItemId = :scheduleItemId";
+        $statement = $pdo->prepare($query);
+        // bind member variables to placeholder in template
+        $parameters = ["scheduleItemId" => $this->scheduleItemId];
+        $statement->execute($parameters);
+    }
+    /**
+     * Updates the scheduleItem entry in a database.
+     * @param \PDO $pdo PDO connection object
+     * @throws \PDOException when mySQL related errors occur
+     * @throws \TypeError if $pdo is not a PDO connection object.
+     **/
+    public function update(\PDO $pdo) {
+        //create query template
+        if($this->scheduleItemId == null){
+            throw new \PDOException("can't update un-inserted scheduleItem",0,null);
+        }
+
+        $query = "UPDATE scheduleItem SET scheduleItemDescription = :scheduleItemDescription, scheduleItemName = :scheduleItemName, scheduleItemStartTime = :scheduleItemStartTime,scheduleItemEndTime = :scheduleItemEndTime, scheduleItemUserId = :scheduleItemUserId WHERE scheduleItemId = :scheduleItemId";
+        $statement = $pdo->prepare($query);
+        // bind member variables to placeholders
+        $parameters = ["scheduleItemId" => $this->scheduleItemId, "scheduleItemDescription" => $this->scheduleItemDescription, "scheduleItemName"=>$this->scheduleItemName, "scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
+        $statement->execute($parameters);
+    }
+
+    /**
+     * Get scheduleItems associated with the specified scheduleItemUserId.
+     * @param \PDO $pdo a PDO connection object
+     * @param int $userId a valid scheduleItemId
+     * @return User|null User found or null if not found
+     * @throws \PDOException when mySQL related errors occur
+     * @throws \TypeError when parameters are not the correct data type.
+     **/
+    public static function getUserByUserId(\PDO $pdo, int $scheduleItemUserId) {
+        if($scheduleItemUserId <= 0) {
+            throw(new \RangeException("scheduleItemUserId must be positive."));
+        }
+        // create query template
+        $query = "SELECT scheduleItemId, scheduleItemDescription, scheduleItemName, scheduleItemStartDate, scheduleItemEndDate, scheduleItemUserId FROM scheduleItem WHERE scheduleItemUserId = :scheduleItemUserId";
+        $statement = $pdo->prepare($query);
+        // bind the user id to the place holder in the template
+        $parameters = ["scheduleItemUserId" => $scheduleItemUserId];
+        $statement->execute($parameters);
+        // grab the user from mySQL
+
+        $scheduleItems = new \SplFixedArray($statement->rowCount());
+
+        $statement->setFetchMode(\PDO::FETCH_ASSOC);
+        $row = $statement->fetch();
+        while(($row = $statement->fetch()) !== false){
+            try{
+                $scheduleItem = new ScheduleItem($row['scheduleItemId'], $row['scheduleItemDescription'], $row['scheduleItemName'], $row['scheduleItemStartTime'], $row['scheduleItemEndTime'], $row['newScheduleItemUserId']);
+                $scheduleItems[$scheduleItems->key()] = $scheduleItem;
+                $scheduleItems->next();
+
+            }catch(\Exception $e){
+                throw(new \PDOException(($e->getMessage(),0,$e)));
+            }
+        }
+
+
+        if($row !== false) {
+            $scheduleItem = new ScheduleItem($row["userId"], $row["userUsername"], $row["userFirstName"], $row["userLastName"] ,$row["userEmail"], $row["userHash"], $row["userSalt"]);
+        }
+        return $scheduleItems;
     }
 
 }
