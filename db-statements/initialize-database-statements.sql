@@ -17,10 +17,10 @@ CREATE TABLE user(
 
 CREATE TABLE scheduleItem(
 	scheduleItemId INT UNSIGNED AUTO_INCREMENT  NOT NULL,
-	scheduleItemDesciption VARCHAR(1000) NOT NULL,
+	scheduleItemDescription VARCHAR(1000) NOT NULL,
 	scheduleItemName VARCHAR(24),
-	scheduleItemStartTime DATETIME NOT NULL,
-	scheduleItemEndTime DATETIME NOT NULL,
+	scheduleItemStartTime VARCHAR(30) NOT NULL,
+	scheduleItemEndTime VARCHAR(30) NOT NULL,
 	scheduleItemUserId INT UNSIGNED NOT NULL,
 
 	PRIMARY KEY (scheduleItemId),

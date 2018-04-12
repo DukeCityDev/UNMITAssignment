@@ -7,7 +7,6 @@
  */
 
 use Unm\Deaton\{User,UNMTest};
-use PHPUnit\DbUnit\Operation\{Composite, Factory, Operation};
 
 //require_once("UNMTest.php");
 require_once(dirname(__DIR__)."/php/autoload.php");

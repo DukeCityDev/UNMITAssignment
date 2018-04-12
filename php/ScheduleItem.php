@@ -8,13 +8,6 @@
  *
  *
  *
- *   scheduleItemId INT UNSIGNED AUTO_INCREMENT  NOT NULL,
- *   scheduleItemDesciption VARCHAR(1000) NOT NULL,
- *   scheduleItemName VARCHAR(24),
- *   scheduleItemStartTime DATETIME NOT NULL,
- *   scheduleItemEndTime DATETIME NOT NULL,
- *   userId INT UNSIGNED NOT NULL,
- *   dateTimePosted DATETIME NOT NULL
  */
 
 namespace Unm\Deaton;
@@ -24,7 +17,7 @@ require_once("autoload.php");
  * ScheduleItem class is used to sanitize and work with data that will be stored in the scheduleItem database
  *
  */
-class ScheduleItem{
+class ScheduleItem implements \JsonSerializable {
     /**
      * @var int ID for the scheduleItem
      */
@@ -50,13 +43,14 @@ class ScheduleItem{
      */
     private $scheduleItemUserId;
 
+
     /**
      * ScheduleItem constructor.
      * @param $newScheduleItemId null|int the scheduleItem of the Id
      * @param $newScheduleItemDescription string the scheduleItem description
      * @param $newScheduleItemName string the scheduleItem name
-     * @param $newScheduleItemStartTime \DateTime the scheduleItem start date
-     * @param $newScheduleItemEndTime \DateTime the scheduleItem end date
+     * @param $newScheduleItemStartTime string the scheduleItem start date
+     * @param $newScheduleItemEndTime string the scheduleItem end date
      * @param $newScheduleItemUserId int the scheduleItem user id
      * @throws \Exception
      * @throws \TypeError
@@ -67,9 +61,9 @@ class ScheduleItem{
             $this->setScheduleItemId($newScheduleItemId);
             $this->setScheduleItemDescription($newScheduleItemDescription);
             $this->setScheduleItemName($newScheduleItemName);
-            $this->setScheduleStartTime($newScheduleItemStartTime);
-            $this->setScheduleEndTime($newScheduleItemEndTime);
-            $this->setScheduleItemTime($newScheduleItemUserId);
+            $this->setScheduleItemStartTime($newScheduleItemStartTime);
+            $this->setScheduleItemEndTime($newScheduleItemEndTime);
+            $this->setScheduleItemUserId($newScheduleItemUserId);
 
         } catch(\InvalidArgumentException $invalidArgument) {
             throw(new \InvalidArgumentException($invalidArgument->getMessage(), 0, $invalidArgument));
@@ -126,11 +120,35 @@ class ScheduleItem{
         $newScheduleItemDescription = trim($newScheduleItemDescription);
         $newScheduleItemDescription = filter_var($newScheduleItemDescription, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
 
-        if(str_len($newScheduleItemDescription) > 1000){
+        if(strlen($newScheduleItemDescription) > 1000){
             throw(new \RangeException("scheduleItemDescription is larger than 1000"));
         }
 
         $this->scheduleItemDescription = $newScheduleItemDescription;
+    }
+
+    /**
+     * @return String The description of the schedule name
+     */
+    public function getScheduleItemName(){
+        return $this->scheduleItemName;
+    }
+
+    /**
+     * @param String $newScheduleItemName, can only be 1000 characters long
+     *
+     * @throws \RangeException If $newScheduleItemDescription is over 1000 characters long
+     */
+    public function setScheduleItemName($newScheduleItemName)
+    {
+        $newScheduleItemName = trim($newScheduleItemName);
+        $newScheduleItemName = filter_var($newScheduleItemName, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
+
+        if(strlen($newScheduleItemName) > 24){
+            throw(new \RangeException("scheduleItemDescription is larger than 1000"));
+        }
+
+        $this->scheduleItemName = $newScheduleItemName;
     }
 
     public function getScheduleItemStartTime(){
@@ -146,7 +164,7 @@ class ScheduleItem{
     }
 
     public function setScheduleItemEndTime($newScheduleItemEndTime){
-        $this->scheduleItemStartTime = $newScheduleItemEndTime;
+        $this->scheduleItemEndTime = $newScheduleItemEndTime;
     }
 
     /**
@@ -182,15 +200,16 @@ class ScheduleItem{
      * @throws \TypeError if $pdo is not a PDO connection object.
      **/
     public function insert(\PDO $pdo) {
-        //check to make sure this user doesn't already exist
+        //check toinsert make sure this user doesn't already exist
         if($this->scheduleItemId !== null || $this->scheduleItemUserId == null) {
             throw(new \PDOException("not a new scheduleItem or no user Id"));
         }
+
         //create query template
-        $query = "INSERT INTO scheduleItem( scheduleItemDesciption, scheduleItemName, scheduleItemStartTime, scheduleItemEndTime, scheduleItemUserId) VALUES (:scheduleItemDesciption, :scheduleItemName, :scheduleItemStartTime, :scheduleItemEndTime, :scheduleItemUserId)";
+        $query = "INSERT INTO scheduleItem(scheduleItemDescription, scheduleItemName, scheduleItemStartTime, scheduleItemEndTime, scheduleItemUserId) VALUES (:scheduleItemDescription, :scheduleItemName, :scheduleItemStartTime, :scheduleItemEndTime, :scheduleItemUserId)";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders in the template
-        $parameters = ["scheduleItemName" => $this->scheduleItemId,"scheduleItemName"=>$this->scheduleItemName,"scheduleItemDescription"=>$this->scheduleItemDescription ,"scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
+        $parameters = ["scheduleItemDescription" => $this->scheduleItemDescription,"scheduleItemName"=>$this->scheduleItemName,"scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
         $statement->execute($parameters);
         $this->scheduleItemId = intval($pdo->lastInsertId());
     }
@@ -234,17 +253,17 @@ class ScheduleItem{
     /**
      * Get scheduleItems associated with the specified scheduleItemUserId.
      * @param \PDO $pdo a PDO connection object
-     * @param int $userId a valid scheduleItemId
-     * @return User|null User found or null if not found
+     * @param int $scheduleItemUserId a valid scheduleItemId
+     * @return \SplFixedArray User found or null if not found
      * @throws \PDOException when mySQL related errors occur
      * @throws \TypeError when parameters are not the correct data type.
      **/
-    public static function getUserByUserId(\PDO $pdo, int $scheduleItemUserId) {
+    public static function getScheduleItemByScheduleItemUserId(\PDO $pdo, $scheduleItemUserId) {
         if($scheduleItemUserId <= 0) {
             throw(new \RangeException("scheduleItemUserId must be positive."));
         }
         // create query template
-        $query = "SELECT scheduleItemId, scheduleItemDescription, scheduleItemName, scheduleItemStartDate, scheduleItemEndDate, scheduleItemUserId FROM scheduleItem WHERE scheduleItemUserId = :scheduleItemUserId";
+        $query = "SELECT scheduleItemId, scheduleItemDescription, scheduleItemName, scheduleItemStartTime, scheduleItemEndTime, scheduleItemUserId FROM scheduleItem WHERE scheduleItemUserId = :scheduleItemUserId";
         $statement = $pdo->prepare($query);
         // bind the user id to the place holder in the template
         $parameters = ["scheduleItemUserId" => $scheduleItemUserId];
@@ -254,23 +273,25 @@ class ScheduleItem{
         $scheduleItems = new \SplFixedArray($statement->rowCount());
 
         $statement->setFetchMode(\PDO::FETCH_ASSOC);
-        $row = $statement->fetch();
         while(($row = $statement->fetch()) !== false){
             try{
-                $scheduleItem = new ScheduleItem($row['scheduleItemId'], $row['scheduleItemDescription'], $row['scheduleItemName'], $row['scheduleItemStartTime'], $row['scheduleItemEndTime'], $row['newScheduleItemUserId']);
+                $scheduleItem = new ScheduleItem($row['scheduleItemId'], $row['scheduleItemDescription'], $row['scheduleItemName'], $row['scheduleItemStartTime'], $row['scheduleItemEndTime'], $row['scheduleItemUserId']);
                 $scheduleItems[$scheduleItems->key()] = $scheduleItem;
                 $scheduleItems->next();
 
             }catch(\Exception $e){
-                throw(new \PDOException(($e->getMessage(),0,$e)));
+                throw (new \PDOException($e->getMessage()));
             }
         }
 
-
-        if($row !== false) {
-            $scheduleItem = new ScheduleItem($row["userId"], $row["userUsername"], $row["userFirstName"], $row["userLastName"] ,$row["userEmail"], $row["userHash"], $row["userSalt"]);
-        }
         return $scheduleItems;
     }
-
+    /**
+     * format instance variables for JSON serialization
+     * @return array an array with serialized state variables
+     **/
+    public function jsonSerialize() {
+        $fields = ["scheduleItemId"=>$this->getScheduleItemId(), "scheduleItemDescription"=> $this->getScheduleItemDescription(), "scheduleItemName"=>$this->getScheduleItemName(), "scheduleItemStartTime"=>$this->scheduleItemStartTime,"scheduleItemEndTime"=>$this->scheduleItemEndTime,"scheduleItemUserId"=>$this->scheduleItemUserId];
+        return ($fields);
+    }
 }
