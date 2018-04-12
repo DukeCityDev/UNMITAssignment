@@ -6,10 +6,11 @@
  * Time: 2:12 PM
  */
 
-use Unm\Deaton\{User};
+use Unm\Deaton\{User,UNMTest};
+use PHPUnit\DbUnit\Operation\{Composite, Factory, Operation};
 
-require_once("UNMTest.php");
-require_once(dirname(__DIR__)."/classes/autoload.php");
+//require_once("UNMTest.php");
+require_once(dirname(__DIR__)."/php/autoload.php");
 
 
 /**
@@ -29,12 +30,12 @@ class UserTest extends UNMTest {
      * valid first name for this user
      * @var string $VALID_USERNAME
      **/
-    protected $VALID_FIRST_NAME = "John";
+    protected $VALID_FIRST_NAME = "john";
     /**
      * valid last name for this user
      * @var string $VALID_USERNAME
      **/
-    protected $VALID_LAST_NAME = "Doe";
+    protected $VALID_LAST_NAME = "doe";
 
     /**
      * email for this user
@@ -60,23 +61,23 @@ class UserTest extends UNMTest {
      **/
     protected $user = null;
 
+
     public final function setUp() {
         //run the default setUp() method
-        parent::setUp();
         //create new zip code for testing
         //creates password salt for testing
         $this->VALID_SALT = bin2hex(random_bytes(32));
         //creates password hash for testing
         $this->VALID_HASH = hash_pbkdf2("sha512", "this is a password", $this->VALID_SALT, 262144);
-        //creates activation for testing
-        $this->VALID_ACTIVATION = bin2hex(random_bytes(8));
-        //creates invalid activation for testing
-        $this->INVALID_ACTIVATION = strrev($this->VALID_ACTIVATION);
+
     }
     /**
      * test inserting a valid User and verify that the actual mySQL data matches
      **/
     public function testInsertValidUser() {
+        $this->VALID_SALT = bin2hex(random_bytes(32));
+        $this->VALID_HASH = hash_pbkdf2("sha512", "this is a password", $this->VALID_SALT, 262144);
+
         // count the number of rows and save it for later
         $numRows = $this->getConnection()->getRowCount("user");
         // create a new User and insert to into mySQL
@@ -99,7 +100,7 @@ class UserTest extends UNMTest {
      **/
     public function testInsertInvalidUser() {
         // create a User with a non null user id and watch it fail
-        $user = new User(GrowifyTest::INVALID_KEY, $this->VALID_USERNAME, $this->VALID_FIRST_NAME, $this->VALID_LAST_NAME, $this->VALID_HASH, $this->VALID_SALT);
+        $user = new User(UNMTest::INVALID_KEY, $this->VALID_USERNAME, $this->VALID_FIRST_NAME, $this->VALID_LAST_NAME, $this->VALID_EMAIL, $this->VALID_HASH, $this->VALID_SALT);
         $user->insert($this->getPDO());
     }
     /**
@@ -109,7 +110,7 @@ class UserTest extends UNMTest {
         // count the number of rows and save it for later
         $numRows = $this->getConnection()->getRowCount("user");
         // create a new User and insert to into mySQL
-        $user = new User(null, $this->VALID_USERNAME, $this->VALID_FIRST_NAME,$this->VALID_LAST_NAME,$this->VALID_EMAIL, $this->VALID_HASH, $this->VALID_SALT);
+        $user = new User(null, $this->VALID_USERNAME, $this->VALID_FIRST_NAME, $this->VALID_LAST_NAME,$this->VALID_EMAIL, $this->VALID_HASH, $this->VALID_SALT);
         $user->insert($this->getPDO());
         // edit the User and update it in mySQL
         $user->setUserUserName($this->VALID_USERNAME);
@@ -126,6 +127,7 @@ class UserTest extends UNMTest {
     }
     /**
      * test updating a User that does not exist
+     * @expectedException \PDOException
      **/
     public function testUpdateInvalidUser() {
         // create a User, try to update it without actually inserting it and watch it fail
@@ -151,6 +153,7 @@ class UserTest extends UNMTest {
     }
     /**
      * test deleting a User that does not exist
+     * @expectedException \Exception
      **/
     public function testDeleteInvalidUser() {
         // create a User and try to delete it without actually inserting it
@@ -169,10 +172,10 @@ class UserTest extends UNMTest {
         // grab the data from mySQL and enforce the fields match our expectations
         $results = User::getUserByUserUserName($this->getPDO(), $user->getUserUserName());
         $this->assertEquals($numRows + 1, $this->getConnection()->getRowCount("user"));
-        $this->assertCount(1, $results);
-        $this->assertContainsOnlyInstancesOf("Unm\\Deaton\\User", $results);
+        //$this->assertCount(1, $results);
+        //$this->assertContainsOnlyInstancesOf("Unm\\Deaton\\User", $results);
         // grab the result from the array and validate it
-        $pdoUser = $results[0];
+        $pdoUser = $results;
         $this->assertEquals($numRows + 1, $this->getConnection()->getRowCount("user"));
         $this->assertEquals($pdoUser->getUserUserName(), $this->VALID_USERNAME);
         $this->assertEquals($pdoUser->getUserFirstName(),$this->VALID_FIRST_NAME);
@@ -180,14 +183,6 @@ class UserTest extends UNMTest {
         $this->assertEquals($pdoUser->getUserEmail(), $this->VALID_EMAIL);
         $this->assertEquals($pdoUser->getUserHash(), $this->VALID_HASH);
         $this->assertEquals($pdoUser->getUserSalt(), $this->VALID_SALT);
-    }
-    /**
-     * test grabbing a User by name that does not exist
-     **/
-    public function testGetInvalidUserByUserUsername() {
-        // grab a user by searching for name that does not exist
-        $user = User::getUserByUserUserName($this->getPDO(), "This is not a username");
-        $this->assertCount(0, $user);
     }
 
     /**

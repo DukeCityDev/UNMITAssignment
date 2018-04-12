@@ -152,7 +152,7 @@ class User implements \JsonSerializable {
         $newUserFirstName = trim($newUserFirstName);
         $newUserFirstName = filter_var($newUserFirstName, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
         $newUserFirstName = strtolower($newUserFirstName);
-        if(empty($newUserFirstName)) {
+        if(empty($newUserFirstName)){
             throw (new \InvalidArgumentException("first name is empty or has invalid contents"));
         }
         if(strlen($newUserFirstName) > 24) {
@@ -267,7 +267,7 @@ class User implements \JsonSerializable {
         $query = "INSERT INTO user( userUsername, userFirstName, userLastName, userEmail, userHash, userSalt) VALUES ( :userUsername, :userFirstName, :userLastName ,:userEmail, :userHash, :userSalt)";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders in the template
-        $parameters = ["userUsername" => $this->userUsername,"userFirstName"=>$this->userLastName, "userLastName"=>$this->userLastName, "userEmail" => $this->userEmail, "userHash" => $this->userHash, "userSalt" => $this->userSalt];
+        $parameters = ["userUsername" => $this->userUsername,"userFirstName"=>$this->userFirstName, "userLastName"=>$this->userLastName, "userEmail" => $this->userEmail, "userHash" => $this->userHash, "userSalt" => $this->userSalt];
         $statement->execute($parameters);
         $this->userId = intval($pdo->lastInsertId());
     }
@@ -278,6 +278,10 @@ class User implements \JsonSerializable {
      * @throws \TypeError if $pdo is not a PDO object.
      **/
     public function delete(\PDO $pdo) {
+
+        if($this->userId == null){
+            throw new \PDOException("can't deleted uninserted user",0,null);
+        }
         // create query template
         $query = "DELETE FROM user WHERE userId = :userId";
         $statement = $pdo->prepare($query);
@@ -293,10 +297,14 @@ class User implements \JsonSerializable {
      **/
     public function update(\PDO $pdo) {
         //create query template
+        if($this->userId == null){
+            throw new \PDOException("can't update un-inserted user",0,null);
+        }
+
         $query = "UPDATE user SET userUsername = :userUsername, userFirstName = :userFirstName, userLastName= :userLastName,userEmail = :userEmail, userHash = :userHash, userSalt = :userSalt WHERE userId = :userId";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders
-        $parameters = ["userId" => $this->userId, "userUsername" => $this->userUsername, "userFirstName"=>$this->userLastName, "userLastName"=>$this->userLastName, "userEmail" => $this->userEmail, "userHash" => $this->userHash, "userSalt" => $this->userSalt];
+        $parameters = ["userId" => $this->userId, "userUsername" => $this->userUsername, "userFirstName"=>$this->userFirstName, "userLastName"=>$this->userLastName, "userEmail" => $this->userEmail, "userHash" => $this->userHash, "userSalt" => $this->userSalt];
         $statement->execute($parameters);
     }
     /**
@@ -384,7 +392,7 @@ class User implements \JsonSerializable {
         $statement->setFetchMode(\PDO::FETCH_ASSOC);
         while(($row = $statement->fetch()) !== false) {
             try {
-                $user = new User($row["userId"], $row["userUsername"],$row["userFirstName"], $row["userLastName"] ,$row["userEmail"], $row["userHash"], $row["userSalt"], $row["userActivation"]);
+                $user = new User($row["userId"], $row["userUsername"],$row["userFirstName"], $row["userLastName"] ,$row["userEmail"], $row["userHash"], $row["userSalt"]);
                 $users[$users->key()] = $user;
                 $users->next();
             } catch(\Exception $exception) {
