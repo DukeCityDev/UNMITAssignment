@@ -152,7 +152,7 @@ class ScheduleItem implements \JsonSerializable {
     }
 
     public function getScheduleItemStartTime(){
-        return $this->scheduleItemStartTime;
+        return new \DateTime($this->scheduleItemStartTime);
     }
 
     public function setScheduleItemStartTime($newScheduleItemStartTime){
@@ -160,7 +160,8 @@ class ScheduleItem implements \JsonSerializable {
     }
 
     public function getScheduleItemEndTime(){
-        return $this->scheduleItemEndTime;
+         return new \DateTime($this->scheduleItemEndTime);
+;
     }
 
     public function setScheduleItemEndTime($newScheduleItemEndTime){
@@ -209,7 +210,7 @@ class ScheduleItem implements \JsonSerializable {
         $query = "INSERT INTO scheduleItem(scheduleItemDescription, scheduleItemName, scheduleItemStartTime, scheduleItemEndTime, scheduleItemUserId) VALUES (:scheduleItemDescription, :scheduleItemName, :scheduleItemStartTime, :scheduleItemEndTime, :scheduleItemUserId)";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders in the template
-        $parameters = ["scheduleItemDescription" => $this->scheduleItemDescription,"scheduleItemName"=>$this->scheduleItemName,"scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
+        $parameters = ["scheduleItemDescription" => $this->scheduleItemDescription,"scheduleItemName"=>$this->scheduleItemName,"scheduleItemStartTime"=>$this->scheduleItemStartTime->format('Y-m-d H:i:s'), "scheduleItemEndTime" => $this->scheduleItemEndTime->format('Y-m-d H:i:s'), "scheduleItemUserId" => $this->scheduleItemUserId];
         $statement->execute($parameters);
         $this->scheduleItemId = intval($pdo->lastInsertId());
     }
@@ -246,7 +247,7 @@ class ScheduleItem implements \JsonSerializable {
         $query = "UPDATE scheduleItem SET scheduleItemDescription = :scheduleItemDescription, scheduleItemName = :scheduleItemName, scheduleItemStartTime = :scheduleItemStartTime,scheduleItemEndTime = :scheduleItemEndTime, scheduleItemUserId = :scheduleItemUserId WHERE scheduleItemId = :scheduleItemId";
         $statement = $pdo->prepare($query);
         // bind member variables to placeholders
-        $parameters = ["scheduleItemId" => $this->scheduleItemId, "scheduleItemDescription" => $this->scheduleItemDescription, "scheduleItemName"=>$this->scheduleItemName, "scheduleItemStartTime"=>$this->scheduleItemStartTime, "scheduleItemEndTime" => $this->scheduleItemEndTime, "scheduleItemUserId" => $this->scheduleItemUserId];
+        $parameters = ["scheduleItemId" => $this->scheduleItemId, "scheduleItemDescription" => $this->scheduleItemDescription, "scheduleItemName"=>$this->scheduleItemName, "scheduleItemStartTime"=>$this->scheduleItemStartTime->format('Y-m-d H:i:s'), "scheduleItemEndTime" => $this->scheduleItemEndTime->format('Y-m-d H:i:s'), "scheduleItemUserId" => $this->scheduleItemUserId];
         $statement->execute($parameters);
     }
 

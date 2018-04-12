@@ -19,8 +19,8 @@ CREATE TABLE scheduleItem(
 	scheduleItemId INT UNSIGNED AUTO_INCREMENT  NOT NULL,
 	scheduleItemDescription VARCHAR(1000) NOT NULL,
 	scheduleItemName VARCHAR(24),
-	scheduleItemStartTime VARCHAR(30) NOT NULL,
-	scheduleItemEndTime VARCHAR(30) NOT NULL,
+	scheduleItemStartTime DATETIME NOT NULL,
+	scheduleItemEndTime DATETIME NOT NULL,
 	scheduleItemUserId INT UNSIGNED NOT NULL,
 
 	PRIMARY KEY (scheduleItemId),
