@@ -21,10 +21,9 @@ CREATE TABLE scheduleItem(
 	scheduleItemName VARCHAR(24),
 	scheduleItemStartTime DATETIME NOT NULL,
 	scheduleItemEndTime DATETIME NOT NULL,
-	userId INT UNSIGNED NOT NULL,
-	dateTimePosted DATETIME NOT NULL,
+	scheduleItemUserId INT UNSIGNED NOT NULL,
 
 	PRIMARY KEY (scheduleItemId),
-	FOREIGN KEY (userId) REFERENCES user(userId)
+	FOREIGN KEY (scheduleItemUserId) REFERENCES user(userId)
 );
 
