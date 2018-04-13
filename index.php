@@ -29,7 +29,8 @@
     </div>
 
     <div id="schedule-container" class="container white hide center" style="margin-top: 15vh; padding: 2%">
-        <h3>Schedule Items!</h3>
+        <h3 id="name"></h3>
+        <h3>Here's your schedule!</h3>
         <div class="row">
             <div class="col s12">
                 <ul id="initial" class="collapsible">
@@ -40,6 +41,7 @@
         </div>
     </div>
 </body>
+<!-- Add JQuery and Main Javascript -->
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 <script type="text/javascript" src="js/main.js"></script>
 

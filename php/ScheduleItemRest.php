@@ -18,7 +18,7 @@ $reply->status = 200;
 $reply->data = null;
 try {
     // get mySQL connection
-    $host = 'localhost';
+    $host = '';
     $db = '';
     $user = '';
     $pass = '';
@@ -38,7 +38,7 @@ try {
 
         $requestContent = file_get_contents("php://input");
         $requestObject = json_decode($requestContent);
-        // check username & password available and sanitize
+        // check userId and sanitize
         if(empty($_GET["userId"]) === true) {
             $reply->status = 405;
             $reply->message = "userId is empty";
@@ -46,7 +46,7 @@ try {
             $userIdCheck = filter_var($_GET["userId"], FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
         }
 
-        //$reply->message = $requestObject->userPassword;
+        //return all scheduleItems associated with the userId in the request
         $scheduleItemList = ScheduleItem::getScheduleItemByScheduleItemUserId($pdo,$userIdCheck);
         $reply->message = $scheduleItemList;
 

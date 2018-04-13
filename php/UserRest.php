@@ -9,7 +9,7 @@ session_start();
  */
 
 require_once(dirname(__DIR__)."/php/autoload.php");
-use Unm\Deaton\{User,ScheduleItem};
+use Unm\Deaton\{User};
 /**
  * API for the User class.
  */
@@ -29,30 +29,23 @@ try {
     $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
     $pdo = new \PDO($dsn, $user, $pass, $options);
 
-//    $user = new User(null, "Test3", "Daniel","Eaton","danielgeaton747@gmail.com", hash_pbkdf2("sha512", "this is a password", bin2hex(random_bytes(32)), 262144),bin2hex(random_bytes(32)));
-//
-//    $user->insert($pdo);
-//
-//    $scheduleItem = new ScheduleItem(null,"Description", "item",new DateTime("now"), new \DateTime("now"), $user->getUserId());
-//    $scheduleItem->insert($pdo);
-
 
     //check which HTTP method was used
     $method = array_key_exists("HTTP_x_HTTP_METHOD", $_SERVER) ? $_SERVER["HTTP_X_HTTP_METHOD"] : $_SERVER["REQUEST_METHOD"];
 
 
     // handle POST request
-    if ($method === "GET") {
+    if ($method === "POST") {
 
         $requestContent = file_get_contents("php://input");
         $requestObject = json_decode($requestContent);
-        // check username & password available and sanitize
+        // check username and sanitize it
         if(empty($requestObject->userUsername) === true) {
             $reply->status = 405;
             $reply->message = "password is empty";
         } else {
             $userNameCheck = filter_var($requestObject->userUsername, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
-        }
+        } //check password and sanitize it
         if(empty($requestObject->userPassword) === true) {
             $reply->status = 405;
             $reply->message = "password is empty";
@@ -60,7 +53,7 @@ try {
             $userPasswordCheck = filter_var($requestObject->userPassword, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
         }
 
-        //$reply->message = $requestObject->userPassword;
+        //get user by userName that was sent in the request
         $mainUser = User::getUserByUserUsername($pdo,$userNameCheck);
         if(empty($mainUser) === true) {
             $reply->status = 405;
@@ -71,9 +64,9 @@ try {
                 $reply->message = "username or password is incorrect";
             }
             else{
-                $_SESSION["userId"] = $mainUser->getUserId();
+                //if the user's password hash matched, send a valid response with a user object containing username, id, and email
                 $reply->status = 200;
-                $reply->message = $mainUser->getUserId();
+                $reply->message = $mainUser;
             }
         }
 
@@ -87,8 +80,8 @@ try {
     $reply->status = $typeError->getCode();
     $reply->message = $typeError->getMessage();
 }
-//header("Content-type: application/json");
 if($reply->data === null) {
     unset($reply->data);
 }
+//send response
 echo json_encode($reply);
