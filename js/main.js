@@ -135,7 +135,8 @@ let initializeLogin = ()=>{
         }, function(error) {
             console.error("POST FAILED", error);
         });
-    })
+
+    });
 };
 
 /**
@@ -144,9 +145,10 @@ let initializeLogin = ()=>{
  * @param scheduleItems A list of Javascript objects in JSON format
  */
 let displayScheduleItems = (scheduleItems)=>{
+    $('#initial').empty();
     let keys = Object.keys(scheduleItems).length;
-    $('#login-container').toggleClass("hide");
-    $('#schedule-container').toggleClass("hide");
+    $('#login-container').addClass("hide");
+    $('#schedule-container').removeClass("hide");
     for(let i = 0; i < keys; i++){
         //populate the collapsible section with a row for every schedule item
         let name = scheduleItems[i].scheduleItemName;
@@ -166,13 +168,14 @@ let displayScheduleItems = (scheduleItems)=>{
 
         $('#initial').append(displayString);
     }
+
 };
 //add a click event listener to the logout button to clear local storage and display the login screen again
 let initializeLogout = ()=>{
   $("#logout").click((event)=>{
       $("#initial").empty();
-      $("#schedule-container").toggleClass("hide");
-      $("#login-container").toggleClass("hide");
+      $("#schedule-container").addClass("hide");
+      $("#login-container").removeClass("hide");
         localStorage.clear();
   });
 };
@@ -185,3 +188,4 @@ let instance = M.Collapsible.init(elem);
 //initialize login form and logout button
 initializeLogin();
 initializeLogout();
+

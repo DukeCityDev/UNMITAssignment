@@ -23,7 +23,7 @@
                     <input id="userPassword" name="userPassword" type="password" class="validate">
                     <label for="userPassword">Password</label>
                 </div>
-                <button id="login-button" class="btn-large" type="submit">ENTER</button>
+                <button id="login-button" class="btn-large waves-effect" type="submit">ENTER</button>
             </form>
         </div>
     </div>
@@ -36,7 +36,7 @@
                 <ul id="initial" class="collapsible">
 
                 </ul>
-                <a id="logout" class="btn">Log Out</a>
+                <a id="logout" class="btn waves-effect">Log Out</a>
             </div>
         </div>
     </div>
